@@ -39,6 +39,8 @@ export const getProfileHandler = async (req: Request, res: Response) => {
       },
     });
     res.setHeader("Content-Type", "application/json");
+
+    console.log(`Profile Handler ${new Date()} ----------- `, response.data.value[0]);
     return res.status(200).json({
       message: "Success",
       statusCode: 200,
