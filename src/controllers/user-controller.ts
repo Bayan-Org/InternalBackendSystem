@@ -13,6 +13,9 @@ export const getProfileHandler = async (req: Request, res: Response) => {
         Authorization: `Bearer ${accessToken}`,
       },
     });
+
+    console.log(`${new Date()} ----------- `, response.data.value[0].UserEmail);
+    
     
     return res.status(201).json({
       message: "Success",
