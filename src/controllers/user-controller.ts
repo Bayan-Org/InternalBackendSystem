@@ -16,12 +16,7 @@ export const getProfileHandler = async (req: Request, res: Response) => {
     console.log(`${new Date()} ----------- `, response.data.value[0].UserEmail);
 
     res.setHeader("Content-Type", "application/json");
-    return res.status(200).json({
-      message: "Success",
-      statusCode: 200,
-      response: response.data.value[0].UserEmail,
-      capResp: response.data,
-    });
+    return res.status(200).json(response.data);
   } catch (error) {
     return res.json({
       statusCode: 500,
