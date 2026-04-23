@@ -35,7 +35,7 @@ export const getProfileHandler = async (req: Request, res: Response) => {
   try {
     const response = await axios.get(requestURL, {
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `${accessToken}`,
       },
     });
     res.setHeader("Content-Type", "application/json");
@@ -47,6 +47,7 @@ export const getProfileHandler = async (req: Request, res: Response) => {
       profile: response.data.value[0]
     });
   } catch (error) {
+    console.log(`Profile Handler error ${new Date()} ----------- `, error);
     return res.json({
       statusCode: 500,
       message: "Internal Server Error get profile",
