@@ -4,7 +4,6 @@ import type { Response, Request } from "express";
 export const getProfileHandler = async (req: Request, res: Response) => {
   const accessToken = req.headers.authorization || process.env.ACCESS_TOKEN;
   const BASE_APP_URL = process.env.BASE_APP_URL;
-  
 
   const requestURL = `${BASE_APP_URL}/odata/v4/current-user/ZC_GET_CURRENT_USER`;
   try {
@@ -15,12 +14,13 @@ export const getProfileHandler = async (req: Request, res: Response) => {
     });
 
     console.log(`${new Date()} ----------- `, response.data.value[0].UserEmail);
-    
-    
-    return res.status(201).json({
+
+    res.setHeader("Content-Type", "application/json");
+    return res.status(200).json({
       message: "Success",
-      statusCode: 201,
+      statusCode: 200,
       response: response.data.value[0].UserEmail,
+      capResp: response.data,
     });
   } catch (error) {
     return res.json({
