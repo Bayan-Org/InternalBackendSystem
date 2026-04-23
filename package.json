@@ -13,16 +13,16 @@
   "author": "",
   "license": "ISC",
   "type": "module",
+  "dependencies": {
+    "express": "^5.2.1",
+    "axios": "^1.15.0",
+    "dotenv": "^17.4.1"
+  },
   "devDependencies": {
     "@types/axios": "^0.9.36",
     "@types/express": "^5.0.6",
     "@types/node": "^25.6.0",
-    "axios": "^1.15.0",
-    "dotenv": "^17.4.1",
-    "express": "^5.2.1",
-    "install": "^0.13.0",
     "nodemon": "^3.1.14",
-    "npm": "^11.12.1",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.2"
   }
