@@ -7,8 +7,6 @@ export const loginHandler = async (req: Request, res: Response) => {
   const BASE_AUTH_URL = process.env.BASE_AUTH_URL;
   const CLIENT_ID = process.env.CLIENT_ID;
   const REDIRECT_URI = process.env.REDIRECT_URI;
-  console.log(REDIRECT_URI);
-  
 
   const authURLPath = `${BASE_AUTH_URL}/oauth/authorize`;
   const authURLParams = `response_type=code&client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&code_challenge=${code_challenge}&code_challenge_method=S256&state=xyz123&scope=openid`;
@@ -48,10 +46,6 @@ export const callbackHandler = async (req: Request, res: Response) => {
   const headersConf = {
     "Content-Type": "application/x-www-form-urlencoded",
   };
-
-  //   Get token
-  console.log(getBasicAuthHeader(CLIENT_ID, CLIENT_SECRET));
-  console.log(getBasicAuthHeader(CLIENT_ID, CLIENT_SECRET));
   
   try {
     const tokenResponse = await axios.post(
