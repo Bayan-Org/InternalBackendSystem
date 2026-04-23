@@ -9,7 +9,6 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-app.options("*", cors());
 
 
 app.listen(config.port, "0.0.0.0", () => {
