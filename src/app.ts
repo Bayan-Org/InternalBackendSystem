@@ -8,6 +8,11 @@ app.use(express.json());
 
 // 🔥 HARUS PALING ATAS
 app.use(cors())
+
+app.use((req, res, next) => {
+  console.log("Incoming:", req.method, req.url);
+  next();
+});
 // app.use(cors({
 //   origin: "https://dev-ecology.bayan.com.sg",
 //   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
