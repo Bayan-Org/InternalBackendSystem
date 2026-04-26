@@ -24,7 +24,7 @@ export const loginHandler = async (req: Request, res: Response) => {
 
 export const callbackHandler = async (req: Request, res: Response) => {
   console.log("Code", req.query.code);
-  
+
   const BASE_AUTH_URL = process.env.BASE_AUTH_URL;
   const CLIENT_ID = process.env.CLIENT_ID as string;
   const REDIRECT_URI = process.env.REDIRECT_URI;
@@ -33,7 +33,7 @@ export const callbackHandler = async (req: Request, res: Response) => {
   const code = req.query.code;
 
   const tokenURLPath = `${BASE_AUTH_URL}/oauth/token`;
-  
+
   //   Set request config
   const urlSearchParamsConf = {
     grant_type: "authorization_code",
@@ -46,7 +46,7 @@ export const callbackHandler = async (req: Request, res: Response) => {
   const headersConf = {
     "Content-Type": "application/x-www-form-urlencoded",
   };
-  
+
   try {
     const tokenResponse = await axios.post(
       tokenURLPath,
@@ -54,14 +54,62 @@ export const callbackHandler = async (req: Request, res: Response) => {
       {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
-          "Authorization": getBasicAuthHeader(CLIENT_ID, CLIENT_SECRET)
+          Authorization: getBasicAuthHeader(CLIENT_ID, CLIENT_SECRET),
         },
-      }
+      },
     );
     const accessToken = tokenResponse.data.access_token;
     return res.status(201).json({
       message: "Token received",
       accessToken,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error getting token",
+      error: error,
+    });
+  }
+};
+
+export const exchangeHandler = async (req: Request, res: Response) => {
+  const BASE_AUTH_URL = process.env.BASE_AUTH_URL;
+  const CLIENT_ID = process.env.CLIENT_ID as string;
+  const REDIRECT_URI = process.env.REDIRECT_URI;
+  const CLIENT_SECRET = process.env.CLIENT_SECRET as string;
+
+  const code = req.query.code;
+  console.log(code);
+
+  const tokenURLPath = `${BASE_AUTH_URL}/oauth/token`;
+
+  //   Set request config
+  const urlSearchParamsConf = {
+    grant_type: "authorization_code",
+    code: code,
+    redirect_uri: REDIRECT_URI,
+    client_id: CLIENT_ID,
+    code_verifier: code_verifier,
+  } as any;
+
+  try {
+    const tokenResponse = await axios.post(
+      tokenURLPath,
+      new URLSearchParams(urlSearchParamsConf),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization: getBasicAuthHeader(CLIENT_ID, CLIENT_SECRET),
+        },
+      },
+    );
+    const accessToken = tokenResponse.data.access_token;
+    const refreshToken = tokenResponse.data.refresh_token;
+    return res.status(201).json({
+      message: "Token received",
+      data: {
+        accessToken,
+        refreshToken,
+      },
     });
   } catch (error) {
     res.status(500).json({

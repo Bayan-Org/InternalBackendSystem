@@ -26,7 +26,6 @@ export const getMatchingProfile = async (req: Request, res: Response) => {
   }
 };
 
-
 export const getProfileHandler = async (req: Request, res: Response) => {
   const accessToken = req.headers.authorization || process.env.ACCESS_TOKEN;
   const BASE_APP_URL = process.env.BASE_APP_URL;
@@ -40,11 +39,17 @@ export const getProfileHandler = async (req: Request, res: Response) => {
     });
     res.setHeader("Content-Type", "application/json");
 
-    console.log(`Profile Handler ${new Date()} ----------- `, response.data.value[0]);
+    console.log(
+      `Profile Handler ${new Date()} ----------- `,
+      response.data.value[0],
+    );
     return res.status(200).json({
       message: "Success",
       statusCode: 200,
-      profile: response.data.value[0]
+      profile: {
+        ...response.data.value[0],
+        UserName: response.data.value[0].Bname,
+      },
     });
   } catch (error) {
     console.log(`Profile Handler error ${new Date()} ----------- `, error);
@@ -55,5 +60,3 @@ export const getProfileHandler = async (req: Request, res: Response) => {
     });
   }
 };
-
-
