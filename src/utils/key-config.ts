@@ -14,9 +14,7 @@ export const sha256 = (buffer: crypto.BinaryLike) => {
 
 export const cryptoRandomBytes = crypto.randomBytes(32);
 
-
-
-export const getBasicAuthHeader = (clientId:string, clientSecret:string) => {
+export const getBasicAuthHeader = (clientId: string, clientSecret: string) => {
   const credentials = `${clientId}:${clientSecret}`;
   const base64 = Buffer.from(credentials).toString("base64");
   return `Basic ${base64}`;

@@ -1,40 +1,26 @@
 import express, { type Request, type Response } from "express";
+import dotenv from "dotenv";
 import AuthRouter from "./routes/auth-route.js";
 import UserRouter from "./routes/user-route.js";
 import cors from "cors";
+import { AuthMiddleware } from "./middleware/auth-middleware.js";
+import TaskRouter from "./routes/task-route.js";
+
+dotenv.config();
 const app = express();
 
 app.use(express.json());
 
-app.use((req, res, next) => {
-  console.log("Incoming Before Cors:", req.method, req.url);
-  next();
-});
-
-// 🔥 HARUS PALING ATAS
-app.use(cors())
-
-app.use((req, res, next) => {
-  console.log("Incoming After Cors:", req.method, req.url);
-  next();
-});
-// app.use(cors({
-//   origin: "https://dev-ecology.bayan.com.sg",
-//   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-//   allowedHeaders: ["Content-Type", "Authorization", "Access-Control-Allow-Origin"]
-// }));
-
-// // 🔥 handle preflight secara manual (Express v5 safe)
 // app.use((req, res, next) => {
-//   if (req.method === "OPTIONS") {
-//     res.header("Access-Control-Allow-Origin", "https://dev-ecology.bayan.com.sg");
-//     res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-//     res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-//     return res.sendStatus(200);
-//   }
+//   console.log("Incoming Before Cors:", req.method, req.url, req.baseUrl);
 //   next();
 // });
 
+app.use(cors());
+
+// app.use((req, res, next) => {
+//   next();
+// });
 
 app.get("/", (req: Request, res: Response) => {
   res.status(201).json({
@@ -43,5 +29,6 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 app.use("/auth", AuthRouter);
-app.use("/user", UserRouter);
+app.use("/user", AuthMiddleware, UserRouter);
+app.use("/task", AuthMiddleware, TaskRouter);
 export default app;

@@ -23,7 +23,7 @@ export const loginHandler = async (req: Request, res: Response) => {
 };
 
 export const callbackHandler = async (req: Request, res: Response) => {
-  console.log("Code", req.query.code);
+  console.log("Callback:", req);
 
   const BASE_AUTH_URL = process.env.BASE_AUTH_URL;
   const CLIENT_ID = process.env.CLIENT_ID as string;
@@ -59,9 +59,11 @@ export const callbackHandler = async (req: Request, res: Response) => {
       },
     );
     const accessToken = tokenResponse.data.access_token;
+    const refreshToken = tokenResponse.data.refresh_token;
     return res.status(201).json({
       message: "Token received",
       accessToken,
+      refreshToken,
     });
   } catch (error) {
     res.status(500).json({
@@ -115,6 +117,48 @@ export const exchangeHandler = async (req: Request, res: Response) => {
     res.status(500).json({
       message: "Error getting token",
       error: error,
+    });
+  }
+};
+
+export const refreshTokenHandler = async (req: Request, res: Response) => {
+  try {
+    const refresh_token = req.body?.refresh_token;
+
+    if (!refresh_token) {
+      return res.status(401).json({
+        statusCode: 401,
+        message: "Refresh token is missing",
+      });
+    }
+
+    const BASE_AUTH_URL = process.env.BASE_AUTH_URL;
+
+    const url = `${BASE_AUTH_URL}/oauth/token`;
+    const urlSearchParamsConf = {
+      grant_type: "refresh_token",
+      refresh_token,
+      client_id: process.env.CLIENT_ID,
+      client_secret: process.env.CLIENT_SECRET,
+    } as any;
+
+    const response = await axios.post(
+      url,
+      new URLSearchParams(urlSearchParamsConf),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      },
+    );
+    return res.status(201).json({
+      statusCode: 201,
+      message: "Success refreshing token",
+      data: response.data,
+    });
+  } catch (error) {
+    res.status(401).json({
+      message: error,
     });
   }
 };
