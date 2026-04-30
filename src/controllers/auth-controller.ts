@@ -80,7 +80,6 @@ export const exchangeHandler = async (req: Request, res: Response) => {
   const CLIENT_SECRET = process.env.CLIENT_SECRET as string;
 
   const code = req.query.code;
-  console.log(code);
 
   const tokenURLPath = `${BASE_AUTH_URL}/oauth/token`;
 
@@ -151,14 +150,24 @@ export const refreshTokenHandler = async (req: Request, res: Response) => {
         },
       },
     );
+    const accessToken = response.data.access_token;
+    const refreshToken = response.data.refresh_token;
     return res.status(201).json({
       statusCode: 201,
       message: "Success refreshing token",
-      data: response.data,
+      data: {
+        accessToken,
+        refreshToken,
+      },
     });
   } catch (error) {
     res.status(401).json({
-      message: error,
+      statusCode: 401,
+      message: "Unauthorized",
+      data: {
+        message: "Session expired. Please login again.",
+        action: "RELOGIN",
+      },
     });
   }
 };
