@@ -23,8 +23,6 @@ export const loginHandler = async (req: Request, res: Response) => {
 };
 
 export const callbackHandler = async (req: Request, res: Response) => {
-  console.log("Callback:", req);
-
   const BASE_AUTH_URL = process.env.BASE_AUTH_URL;
   const CLIENT_ID = process.env.CLIENT_ID as string;
   const REDIRECT_URI = process.env.REDIRECT_URI;
