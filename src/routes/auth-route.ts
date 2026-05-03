@@ -11,6 +11,6 @@ const AuthRouter = express.Router();
 AuthRouter.get("/login", loginHandler);
 AuthRouter.get("/callback", callbackHandler);
 AuthRouter.get("/exchange", exchangeHandler);
-AuthRouter.get("/refresh-token", refreshTokenHandler);
+AuthRouter.post("/refresh-token", refreshTokenHandler);
 
 export default AuthRouter;
