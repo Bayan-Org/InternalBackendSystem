@@ -111,8 +111,9 @@ export const exchangeHandler = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    res.status(500).json({
-      message: "Error getting token",
+    res.status(401).json({
+      message:
+        "Failed exchange your credentials, please contact your administrator",
       error: error,
     });
   }

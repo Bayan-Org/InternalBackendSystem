@@ -49,9 +49,9 @@ export const getProfileHandler = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.log(`Profile Handler error ${new Date()} ----------- `, error);
-    return res.json({
-      statusCode: 500,
+    console.log(`Profile Handler error ----------- `, error);
+    return res.status(401).json({
+      statusCode: 401,
       message: "Internal Server Error get profile",
       data: error,
     });

@@ -7,15 +7,14 @@ export const getTaskDataHandler = async (req: Request, res: Response) => {
     const api = createApiInstance(accessToken!);
     const path = `/odata/v4/taskprocessing/TaskData`;
     const response = await api.get(path);
-
-    return res.status(201).json({
-      statusCode: 201,
+    return res.status(200).json({
+      statusCode: 200,
       message: "Success",
       data: response.data,
     });
   } catch (error) {
-    return res.json({
-      statusCode: 500,
+    return res.status(400).json({
+      statusCode: 400,
       message: "Internal Server Error get Task",
       data: error,
     });
