@@ -78,6 +78,12 @@ export const exchangeHandler = async (req: Request, res: Response) => {
   const CLIENT_SECRET = process.env.CLIENT_SECRET as string;
 
   const code = req.query.code;
+  if (!code) {
+    return res.status(401).json({
+      message: "Code is missing",
+      error: {},
+    });
+  }
 
   const tokenURLPath = `${BASE_AUTH_URL}/oauth/token`;
 
@@ -113,7 +119,7 @@ export const exchangeHandler = async (req: Request, res: Response) => {
   } catch (error) {
     res.status(401).json({
       message:
-        "Failed exchange your credentials, please contact your administrator",
+        "Failed to exchange your credentials, please contact your administrator",
       error: error,
     });
   }
