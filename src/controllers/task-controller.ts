@@ -45,17 +45,27 @@ export const getTaskCollectionHandler = async (req: Request, res: Response) => {
 export const getTaskReferenceHandler = async (req: Request, res: Response) => {
   try {
     const accessToken = req.headers.authorization as string;
+    const { InstanceID, ReferenceDoc } = req.query;
+    const TaskIndicator = res.locals.TaskIndicator;
+    const expandedEntity =
+      TaskIndicator === "PurchaseRequisition"
+        ? "to_PurchaseReqItem"
+        : "to_PurchaseOrdItem";
     const api = createApiInstance(accessToken!);
-    const path = `/odata/v4/taskprocessing/TaskReference`;
+    const path = `/odata/v4/taskprocessing/TaskReference?$filter=ReferenceDoc eq '${ReferenceDoc}' and InstanceID eq '${InstanceID}'&$expand=${expandedEntity}`;
     const response = await api.get(path);
 
+    let resp = response.data;
+    resp.value[0][expandedEntity].sort(
+      (a: any, b: any) => parseFloat(a.LineItem) - parseFloat(b.LineItem),
+    );
     return res.status(201).json({
       statusCode: 201,
       message: "Success",
-      data: response.data,
+      data: resp,
     });
   } catch (error) {
-    return res.json({
+    return res.status(500).json({
       statusCode: 500,
       message: "Internal Server Error get Task",
       data: error,
@@ -98,9 +108,10 @@ export const actionHandler = async (req: Request, res: Response) => {
       data: response.data,
     });
   } catch (error) {
-    return res.json({
-      statusCode: 500,
-      message: "Internal Server Error Approve Task",
+    return res.status(400).json({
+      statusCode: 400,
+      message:
+        "Unable to process the approval due to a document lock or unexpected issue. Please try again later.",
       data: error,
     });
   }

@@ -14,22 +14,10 @@ const TaskRouter = express.Router();
 
 TaskRouter.get("/data", getTaskDataHandler);
 TaskRouter.get("/collection", getTaskCollectionHandler);
-TaskRouter.get("/reference", getTaskReferenceHandler);
+TaskRouter.get("/reference", TaskDetailMiddleware, getTaskReferenceHandler);
 
-TaskRouter.post(
-  "/approve",
-  [ApprovalMiddleware, TaskDetailMiddleware],
-  actionHandler,
-);
-TaskRouter.post(
-  "/reject",
-  [ApprovalMiddleware, TaskDetailMiddleware],
-  actionHandler,
-);
-TaskRouter.post(
-  "/rework",
-  [ApprovalMiddleware, TaskDetailMiddleware],
-  actionHandler,
-);
+TaskRouter.post("/approve", [ApprovalMiddleware], actionHandler);
+TaskRouter.post("/reject", [ApprovalMiddleware], actionHandler);
+TaskRouter.post("/rework", [ApprovalMiddleware], actionHandler);
 
 export default TaskRouter;
