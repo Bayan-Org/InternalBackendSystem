@@ -17,6 +17,7 @@ export const AuthMiddleware = async (
       return res.status(401).json({
         statusCode: 401,
         message: "Token is missing",
+        action: "RELOGIN",
       });
     }
 
@@ -25,6 +26,7 @@ export const AuthMiddleware = async (
       return res.status(401).json({
         statusCode: 401,
         message: "Wrong token format",
+        action: "RELOGIN",
       });
     }
 
@@ -35,6 +37,7 @@ export const AuthMiddleware = async (
     return res.status(401).json({
       statusCode: 401,
       message: "Unauthorized",
+      action: "RELOGIN",
       data: error,
     });
   }

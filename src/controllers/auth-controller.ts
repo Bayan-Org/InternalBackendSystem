@@ -166,7 +166,7 @@ export const refreshTokenHandler = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    res.status(401).json({
+    return res.status(401).json({
       statusCode: 401,
       message: "Unauthorized",
       data: {

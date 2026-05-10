@@ -3,9 +3,17 @@ import { createApiInstance } from "../utils/apiFactory-util.js";
 
 export const getTaskDataHandler = async (req: Request, res: Response) => {
   try {
+    const { Service } = req.query;
+
+    if (!Service || Service === "") {
+      return res.status(400).json({
+        statusCode: 400,
+        message: "Please provide a service that you want check",
+      });
+    }
     const accessToken = req.headers.authorization as string;
     const api = createApiInstance(accessToken!);
-    const path = `/odata/v4/taskprocessing/TaskData`;
+    const path = `/odata/v4/taskprocessing/TaskData?TaskIndicator=${Service}`;
     const response = await api.get(path);
     return res.status(200).json({
       statusCode: 200,
@@ -15,7 +23,7 @@ export const getTaskDataHandler = async (req: Request, res: Response) => {
   } catch (error) {
     return res.status(400).json({
       statusCode: 400,
-      message: "Internal Server Error get Task",
+      message: "Error get Task",
       data: error,
     });
   }
