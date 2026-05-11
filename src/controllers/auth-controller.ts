@@ -30,6 +30,10 @@ export const logoutHandler = async (req: Request, res: Response) => {
 
     const logoutUrl = new URL(ADFS_URL);
     logoutUrl.searchParams.set("wa", "wsignout1.0");
+    logoutUrl.searchParams.set(
+      "wreply",
+      "https://apps.bayan.com.sg/api/auth/good-bye",
+    );
 
     return res.status(200).json({
       message: "Logout prepared",
