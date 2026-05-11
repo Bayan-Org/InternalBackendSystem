@@ -19,3 +19,12 @@ export const getBasicAuthHeader = (clientId: string, clientSecret: string) => {
   const base64 = Buffer.from(credentials).toString("base64");
   return `Basic ${base64}`;
 };
+
+export const buildLogoutUrl = (
+  baseAuthUrl: string,
+  postLogoutRedirectUri: string,
+) => {
+  const logoutUrl = new URL(`${baseAuthUrl}/oauth2/logout`);
+  logoutUrl.searchParams.set("post_logout_redirect_uri", postLogoutRedirectUri);
+  return logoutUrl.toString();
+};

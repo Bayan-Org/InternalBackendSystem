@@ -3,6 +3,46 @@ import axios, { type AxiosRequestConfig } from "axios";
 import { code_challenge, code_verifier } from "../configs/init-config.js";
 import { getBasicAuthHeader } from "../utils/key-config.js";
 
+export const logoutHandler = async (req: Request, res: Response) => {
+  const BASE_AUTH_URL = process.env.BASE_AUTH_URL as string;
+  const CLIENT_ID = process.env.CLIENT_ID as string;
+  const CLIENT_SECRET = process.env.CLIENT_SECRET as string;
+  const ADFS_URL = process.env.ADFS_URL as string;
+  const refreshToken = req.body?.refreshToken as string | undefined;
+
+  try {
+    if (refreshToken) {
+      await axios.post(
+        `${BASE_AUTH_URL}/oauth/revoke`,
+        new URLSearchParams({
+          token: refreshToken,
+          token_type_hint: "refresh_token",
+          client_id: CLIENT_ID,
+        }).toString(),
+        {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            Authorization: getBasicAuthHeader(CLIENT_ID, CLIENT_SECRET),
+          },
+        },
+      );
+    }
+
+    const logoutUrl = new URL(ADFS_URL);
+    logoutUrl.searchParams.set("wa", "wsignout1.0");
+
+    return res.status(200).json({
+      message: "Logout prepared",
+      logoutUrl: logoutUrl.toString(),
+    });
+  } catch (error: any) {
+    return res.status(500).json({
+      message: "Error during logout",
+      error: error?.response?.data || error?.message || error,
+    });
+  }
+};
+
 export const loginHandler = async (req: Request, res: Response) => {
   const BASE_AUTH_URL = process.env.BASE_AUTH_URL;
   const CLIENT_ID = process.env.CLIENT_ID;

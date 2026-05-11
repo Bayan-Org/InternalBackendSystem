@@ -3,12 +3,17 @@ import {
   callbackHandler,
   exchangeHandler,
   loginHandler,
+  logoutHandler,
   refreshTokenHandler,
 } from "../controllers/auth-controller.js";
 
 const AuthRouter = express.Router();
 
 AuthRouter.get("/login", loginHandler);
+AuthRouter.get("/logout", logoutHandler);
+AuthRouter.get("/good-bye", (req, res) => {
+  res.send("See you when i see you again");
+});
 AuthRouter.get("/callback", callbackHandler);
 AuthRouter.get("/exchange", exchangeHandler);
 AuthRouter.post("/refresh-token", refreshTokenHandler);
