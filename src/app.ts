@@ -22,13 +22,13 @@ app.use(cors());
 //   next();
 // });
 
-app.get("/", (req: Request, res: Response) => {
+app.get("/api", (req: Request, res: Response) => {
   res.status(201).json({
     message: "Server running",
   });
 });
 
-app.use("/auth", AuthRouter);
-app.use("/user", AuthMiddleware, UserRouter);
-app.use("/task", AuthMiddleware, TaskRouter);
+app.use("/api/auth", AuthRouter);
+app.use("/api/user", AuthMiddleware, UserRouter);
+app.use("/api/task", AuthMiddleware, TaskRouter);
 export default app;
