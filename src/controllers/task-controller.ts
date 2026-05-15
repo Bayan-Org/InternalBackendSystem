@@ -1,5 +1,6 @@
 import type { Response, Request } from "express";
 import { createApiInstance } from "../utils/apiFactory-util.js";
+import type { IPayloads } from "../middleware/action-middleware.js";
 
 export const getTaskDataHandler = async (req: Request, res: Response) => {
   try {
@@ -82,7 +83,7 @@ export const getTaskReferenceHandler = async (req: Request, res: Response) => {
 };
 
 export const actionHandler = async (req: Request, res: Response) => {
-  const { Notes, InstanceID, SAP__Origin } = req.body;
+  const { Payloads } = req.body;
 
   const reqPath = req.url;
   const splittedUrl = reqPath.substring(1, reqPath.length);
@@ -90,9 +91,10 @@ export const actionHandler = async (req: Request, res: Response) => {
   try {
     const accessToken = req.headers.authorization as string;
     const api = createApiInstance(accessToken!);
-    const path = `/odata/v4/taskprocessing/Decision`;
+    const path = `/odata/v4/taskprocessing/BulkDecision`;
 
     let decisionKey = "" as string | undefined;
+
     switch (splittedUrl) {
       case "rework":
         decisionKey = process.env.REWORK_DECISSION_KEY;
@@ -104,23 +106,33 @@ export const actionHandler = async (req: Request, res: Response) => {
         decisionKey = process.env.APPROVE_DECISSION_KEY;
         break;
     }
-    const response = await api.post(path, {
-      InstanceID: InstanceID,
+
+    const buildedPayload = Payloads.items.map((i: IPayloads) => ({
+      InstanceID: i.InstanceID,
       DecisionKey: decisionKey,
-      Comments: Notes,
-      SAP__Origin: SAP__Origin,
+      Comments: Payloads.Notes,
+      SAP__Origin: i.SAP__ORIGIN,
+    }));
+
+    const response = await api.post(path, {
+      items: buildedPayload,
     });
+
     return res.status(201).json({
       statusCode: 201,
       message: "Success",
       data: response.data,
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.log("====================================");
+    console.log(error);
+    console.log("====================================");
+
     return res.status(400).json({
       statusCode: 400,
       message:
         "Unable to process the approval due to a document lock or unexpected issue. Please try again later.",
-      data: error,
+      data: error?.response?.data || error.message,
     });
   }
 };
