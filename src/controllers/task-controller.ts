@@ -1,25 +1,52 @@
 import type { Response, Request } from "express";
 import { createApiInstance } from "../utils/apiFactory-util.js";
 import type { IPayloads } from "../middleware/action-middleware.js";
+import { encodedNotes } from "../utils/index-util.js";
 
 export const getTaskDataHandler = async (req: Request, res: Response) => {
   try {
+    console.log("====================================");
+    console.log(req.query);
+    console.log("====================================");
     const { Service } = req.query;
 
     if (!Service || Service === "") {
       return res.status(400).json({
         statusCode: 400,
-        message: "Please provide a service that you want check",
+        message: "Please provide a service that you want to check",
       });
     }
     const accessToken = req.headers.authorization as string;
     const api = createApiInstance(accessToken!);
-    const path = `/odata/v4/taskprocessing/TaskData?TaskIndicator=${Service}`;
+    const page = Math.max(parseInt((req.query.page as any) ?? "1", 10), 1);
+    const limit = Math.min(
+      parseInt((req.query.limit as any) ?? "1", 10),
+      100,
+    ).toString();
+    const skip = ((page - 1) * parseFloat(limit)) as any;
+
+    const isSearching = req.query.search ? true : false;
+    const params = new URLSearchParams({
+      TaskIndicator: Service as string,
+      skip: skip as string,
+      limit: limit as string,
+    });
+
+    if (isSearching) {
+      const query = req.query.query as string;
+      params.append("search", isSearching as any);
+      params.append("query", query as any);
+    }
+
+    const path = `/odata/v4/taskprocessing/TaskData?${params}`;
     const response = await api.get(path);
     return res.status(200).json({
       statusCode: 200,
       message: "Success",
-      data: response.data,
+      data: {
+        value: response.data.value[0].value,
+        meta: response.data.value[0].meta,
+      },
     });
   } catch (error) {
     return res.status(400).json({
@@ -110,7 +137,7 @@ export const actionHandler = async (req: Request, res: Response) => {
     const buildedPayload = Payloads.items.map((i: IPayloads) => ({
       InstanceID: i.InstanceID,
       DecisionKey: decisionKey,
-      Comments: Payloads.Notes,
+      Comments: encodedNotes(Payloads.Notes),
       SAP__Origin: i.SAP__ORIGIN,
     }));
 
@@ -124,10 +151,6 @@ export const actionHandler = async (req: Request, res: Response) => {
       data: response.data,
     });
   } catch (error: any) {
-    console.log("====================================");
-    console.log(error);
-    console.log("====================================");
-
     return res.status(400).json({
       statusCode: 400,
       message:
