@@ -1,21 +1,19 @@
 import type { Response, Request } from "express";
 import { createApiInstance } from "../utils/apiFactory-util.js";
 import type { IPayloads } from "../middleware/action-middleware.js";
-import { encodedNotes } from "../utils/index-util.js";
+import {
+  encodedNotes,
+  isEmptyAmount,
+  isEmptyDate,
+  parseAmount,
+  unformatDate,
+  unformatDateToOData,
+} from "../utils/index-util.js";
 
 export const getTaskDataHandler = async (req: Request, res: Response) => {
   try {
-    console.log("====================================");
-    console.log(req.query);
-    console.log("====================================");
-    const { Service } = req.query;
+    const { Service, isFiltering, sortField, sortDirection } = req.query as any;
 
-    if (!Service || Service === "") {
-      return res.status(400).json({
-        statusCode: 400,
-        message: "Please provide a service that you want to check",
-      });
-    }
     const accessToken = req.headers.authorization as string;
     const api = createApiInstance(accessToken!);
     const page = Math.max(parseInt((req.query.page as any) ?? "1", 10), 1);
@@ -25,11 +23,14 @@ export const getTaskDataHandler = async (req: Request, res: Response) => {
     ).toString();
     const skip = ((page - 1) * parseFloat(limit)) as any;
 
-    const isSearching = req.query.search ? true : false;
+    const isSearching = req.query.search === "true" ? true : false;
     const params = new URLSearchParams({
       TaskIndicator: Service as string,
       skip: skip as string,
       limit: limit as string,
+      sortField: sortField as string,
+      sortDirection: sortDirection as string,
+      isFiltering: isFiltering as string,
     });
 
     if (isSearching) {
@@ -37,6 +38,48 @@ export const getTaskDataHandler = async (req: Request, res: Response) => {
       params.append("search", isSearching as any);
       params.append("query", query as any);
     }
+
+    if (isFiltering.toLowerCase() === "true") {
+      const { amountFrom, amountTo, dateFrom, dateTo, currency } =
+        req.query as any;
+      const parsedAmountFrom = parseAmount(amountFrom).toString();
+      const parsedDateFrom = unformatDateToOData(dateFrom) as string;
+
+      const isEmptyAmountTo = isEmptyAmount(amountTo);
+      const isEmptyAmountFrom = isEmptyAmount(amountFrom);
+
+      const isEmptyDateFrom = isEmptyDate(dateFrom);
+      const isEmptyDateTo = isEmptyDate(dateTo);
+
+      const isFilteringByAmount = !isEmptyAmountTo || !isEmptyAmountFrom;
+      const isFilteringByDate = !isEmptyDateFrom || !isEmptyDateTo;
+
+      if (isFilteringByAmount) {
+        params.append("filteringByAmount", "true" as any);
+        params.append("amountFrom", parsedAmountFrom);
+
+        if (!isEmptyAmountTo) {
+          const parsedAmountTo = parseAmount(amountTo).toString();
+          params.append("amountTo", parsedAmountTo);
+        }
+      }
+
+      if (isFilteringByDate) {
+        params.append("filteringByDate", "true" as any);
+        params.append("dateFrom", parsedDateFrom);
+
+        if (!isEmptyDateTo) {
+          const parsedDateTo = unformatDateToOData(dateTo) as string;
+          params.append("dateTo", parsedDateTo);
+        }
+      }
+
+      if (currency !== "*") {
+        params.append("currency", currency);
+      }
+    }
+
+    console.log(params);
 
     const path = `/odata/v4/taskprocessing/TaskData?${params}`;
     const response = await api.get(path);
@@ -49,6 +92,9 @@ export const getTaskDataHandler = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
+    console.log("====================================");
+    console.log(error);
+    console.log("====================================");
     return res.status(400).json({
       statusCode: 400,
       message: "Error get Task",

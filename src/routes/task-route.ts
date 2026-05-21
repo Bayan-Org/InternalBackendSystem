@@ -9,10 +9,11 @@ import {
   ApprovalMiddleware,
   TaskDetailMiddleware,
 } from "../middleware/action-middleware.js";
+import { FilterMiddleware } from "../middleware/params-middleware.js";
 
 const TaskRouter = express.Router();
 
-TaskRouter.get("/data", getTaskDataHandler);
+TaskRouter.get("/data", FilterMiddleware, getTaskDataHandler);
 TaskRouter.get("/collection", getTaskCollectionHandler);
 TaskRouter.get("/reference", TaskDetailMiddleware, getTaskReferenceHandler);
 
