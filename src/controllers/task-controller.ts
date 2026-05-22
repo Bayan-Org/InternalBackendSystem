@@ -127,24 +127,87 @@ export const getTaskCollectionHandler = async (req: Request, res: Response) => {
 export const getTaskReferenceHandler = async (req: Request, res: Response) => {
   try {
     const accessToken = req.headers.authorization as string;
-    const { InstanceID, ReferenceDoc } = req.query;
+    const { ReferenceDoc, isSearching, search } = req.query;
     const TaskIndicator = res.locals.TaskIndicator;
-    const expandedEntity =
+    const entity =
       TaskIndicator === "PurchaseRequisition"
-        ? "to_PurchaseReqItem"
-        : "to_PurchaseOrdItem";
+        ? "PurchaseReqItems"
+        : "PurchaseOrdItems";
+    const service =
+      TaskIndicator === "PurchaseOrder"
+        ? "to_PurchaseOrdItem"
+        : "to_PurchaseReqItem";
     const api = createApiInstance(accessToken!);
-    const path = `/odata/v4/taskprocessing/TaskReference?$filter=ReferenceDoc eq '${ReferenceDoc}' and InstanceID eq '${InstanceID}'&$expand=${expandedEntity}`;
+    const page = Math.max(parseInt((req.query.page as any) ?? "1", 10), 1);
+    const limit = Math.min(
+      parseInt((req.query.pageSize as any) ?? "1", 10),
+      100,
+    ).toString();
+    const skip = ((page - 1) * parseFloat(limit)) as any;
+
+    // --> Handle sorting
+    const { sortField, sortDirection } = req.query;
+    const sortingQuery = `$orderby=${sortField} ${sortDirection}`;
+
+    // ===========================================
+    // --> Begin Handle filter
+
+    // --> Basic Filter
+    const filterQueryList = [];
+    const filterQueryBasic = `(ReferenceDoc eq '${ReferenceDoc}')`;
+    filterQueryList.push(filterQueryBasic);
+
+    // --> Searching
+    if (isSearching === "true" && search) {
+      const listField = [
+        "LineItem",
+        "StorageLocation",
+        "StorageLocationDesc",
+        "Material",
+        "MaterialDesc",
+      ]; // list of fields to search
+      const filterQueryString = listField
+        .map((i) => `contains(${i},'${search}') eq true`)
+        .join(" or ");
+      filterQueryList.push(`(${filterQueryString})`);
+    }
+
+    const filterQuery = `$filter=${filterQueryList.join(" and ")}`;
+
+    // --> Limit
+    const limitQuery = `$top=${limit}`;
+
+    // --> Skip
+    const skipQuery = `$skip=${skip}`;
+
+    // --> Build query
+    let params = `${filterQuery}&${sortingQuery}&${limitQuery}&${skipQuery}`;
+
+    const path = `/odata/v4/taskprocessing/${entity}?${params}`;
     const response = await api.get(path);
 
-    let resp = response.data;
-    resp.value[0][expandedEntity].sort(
-      (a: any, b: any) => parseFloat(a.LineItem) - parseFloat(b.LineItem),
+    // --> get total
+    const totalData = await api.get(
+      `/odata/v4/taskprocessing/${entity}/$count?${filterQuery}&${sortingQuery}`,
     );
+
+    let resp = response.data;
     return res.status(201).json({
       statusCode: 201,
       message: "Success",
-      data: resp,
+      data: {
+        value: [
+          {
+            [service]: [...resp.value],
+          },
+        ],
+        meta: {
+          skip: skip,
+          limit: limit,
+          total: totalData.data,
+          hasMore: skip + [...resp.value].length < totalData.data,
+        },
+      },
     });
   } catch (error) {
     return res.status(500).json({
