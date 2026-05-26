@@ -8,7 +8,7 @@ export const logoutHandler = async (req: Request, res: Response) => {
   const CLIENT_ID = process.env.CLIENT_ID as string;
   const CLIENT_SECRET = process.env.CLIENT_SECRET as string;
   const ADFS_URL = process.env.ADFS_URL as string;
-  const refreshToken = req.body?.refreshToken as string | undefined;
+  const refreshToken = req.query?.refreshToken as string | undefined;
 
   try {
     if (refreshToken) {
@@ -30,15 +30,12 @@ export const logoutHandler = async (req: Request, res: Response) => {
 
     const logoutUrl = new URL(ADFS_URL);
     logoutUrl.searchParams.set("wa", "wsignout1.0");
-    logoutUrl.searchParams.set(
-      "wreply",
-      "https://apps.bayan.com.sg/api/auth/good-bye",
-    );
+    // logoutUrl.searchParams.set(
+    //   "wreply",
+    //   "https://apps.bayan.com.sg/api/auth/good-bye",
+    // );
 
-    return res.status(200).json({
-      message: "Logout prepared",
-      logoutUrl: logoutUrl.toString(),
-    });
+    return res.status(200).redirect(logoutUrl.toString());
   } catch (error: any) {
     return res.status(500).json({
       message: "Error during logout",
