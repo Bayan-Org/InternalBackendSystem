@@ -9,6 +9,7 @@ import {
   unformatDate,
   unformatDateToOData,
 } from "../utils/index-util.js";
+import type { PendingApprovalDetailParams } from "../interface/index.js";
 
 export const getTaskDataHandler = async (req: Request, res: Response) => {
   try {
@@ -127,7 +128,7 @@ export const getTaskCollectionHandler = async (req: Request, res: Response) => {
 export const getTaskReferenceHandler = async (req: Request, res: Response) => {
   try {
     const accessToken = req.headers.authorization as string;
-    const { ReferenceDoc, isSearching, search } = req.query;
+    const { ReferenceDoc, isSearching, search, isFiltering } = req.query;
     const TaskIndicator = res.locals.TaskIndicator;
     const entity =
       TaskIndicator === "PurchaseRequisition"
@@ -172,8 +173,81 @@ export const getTaskReferenceHandler = async (req: Request, res: Response) => {
       filterQueryList.push(`(${filterQueryString})`);
     }
 
+    if (isFiltering === "true") {
+      const {
+        unit,
+        amountFrom,
+        amountTo,
+        unitPriceFrom,
+        unitPriceTo,
+        quantityFrom,
+        quantityTo,
+      } = req.query as any;
+
+      // --> Filter by unit
+      if (unit !== "*") {
+        const filterByCurrency = `(Unit eq '${unit}')`;
+        filterQueryList.push(filterByCurrency);
+      }
+
+      // --> Filter by amount
+      const parsedAmountFrom = parseAmount(amountFrom);
+      const isEmptyAmountTo = isEmptyAmount(amountTo);
+      const isEmptyAmountFrom = isEmptyAmount(amountFrom);
+
+      const isFilteringByAmount = !isEmptyAmountTo || !isEmptyAmountFrom;
+      if (isFilteringByAmount) {
+        const isRangeAmount = !isEmptyAmountTo && !isEmptyAmountFrom;
+        if (isRangeAmount) {
+          const parsedAmountTo = parseAmount(amountTo);
+          filterQueryList.push(
+            `(Amount ge ${parsedAmountFrom} and Amount le ${parsedAmountTo})`,
+          );
+        } else {
+          filterQueryList.push(`(Amount eq ${parsedAmountFrom})`);
+        }
+      }
+
+      // --> Filter by unit price
+      const parsedUnitPriceFrom = parseAmount(unitPriceFrom);
+      const isEmptyUnitPriceTo = isEmptyAmount(unitPriceTo);
+      const isEmptyUnitPriceFrom = isEmptyAmount(unitPriceFrom);
+      const isFilteringByUnitPrice =
+        !isEmptyUnitPriceTo || !isEmptyUnitPriceFrom;
+      if (isFilteringByUnitPrice) {
+        const isRangeUnitPrice = !isEmptyUnitPriceTo && !isEmptyUnitPriceFrom;
+        if (isRangeUnitPrice) {
+          const parsedUnitPriceTo = parseAmount(unitPriceTo);
+          filterQueryList.push(
+            `(UnitPrice ge ${parsedUnitPriceFrom} and UnitPrice le ${parsedUnitPriceTo})`,
+          );
+        } else {
+          filterQueryList.push(`(UnitPrice eq ${parsedUnitPriceFrom}`);
+        }
+      }
+
+      // --> Filter by quantity
+      const parsedQuantityFrom = parseAmount(quantityFrom);
+      const isEmptyQuantityTo = isEmptyAmount(quantityTo);
+      const isEmptyQuantityFrom = isEmptyAmount(quantityFrom);
+      const isFilteringByQty = !isEmptyQuantityTo || !isEmptyQuantityFrom;
+      if (isFilteringByQty) {
+        const isRangeQuantity = !isEmptyQuantityTo && !isEmptyQuantityFrom;
+        if (isRangeQuantity) {
+          const parsedQuantityTo = parseAmount(quantityTo);
+          filterQueryList.push(
+            `(Quantity ge ${parsedQuantityFrom} and Quantity le ${parsedQuantityTo})`,
+          );
+        } else {
+          filterQueryList.push(`(Quantity eq ${parsedQuantityFrom}`);
+        }
+      }
+    }
     const filterQuery = `$filter=${filterQueryList.join(" and ")}`;
 
+    console.log("====================================");
+    console.log(filterQuery);
+    console.log("====================================");
     // --> Limit
     const limitQuery = `$top=${limit}`;
 
@@ -191,6 +265,16 @@ export const getTaskReferenceHandler = async (req: Request, res: Response) => {
       `/odata/v4/taskprocessing/${entity}/$count?${filterQuery}&${sortingQuery}`,
     );
 
+    // --> Get all unit
+    let unitsResp = [] as any;
+    if (page === 1) {
+      const units = await api.get(
+        `/odata/v4/taskprocessing/${entity}?$select=Unit&$filter=ReferenceDoc eq '${ReferenceDoc}'`,
+      );
+      const respUnits = units.data.value;
+      unitsResp = [...new Set(respUnits.map((e: any) => e.Unit))];
+    }
+
     let resp = response.data;
     return res.status(201).json({
       statusCode: 201,
@@ -201,6 +285,7 @@ export const getTaskReferenceHandler = async (req: Request, res: Response) => {
             [service]: [...resp.value],
           },
         ],
+        units: unitsResp,
         meta: {
           skip: skip,
           limit: limit,
@@ -209,10 +294,10 @@ export const getTaskReferenceHandler = async (req: Request, res: Response) => {
         },
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     return res.status(500).json({
       statusCode: 500,
-      message: "Internal Server Error get Task",
+      message: error.message ?? "Internal Server Error get Task",
       data: error,
     });
   }
