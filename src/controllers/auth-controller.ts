@@ -11,22 +11,22 @@ export const logoutHandler = async (req: Request, res: Response) => {
   const refreshToken = req.query?.refreshToken as string | undefined;
 
   try {
-    if (refreshToken) {
-      await axios.post(
-        `${BASE_AUTH_URL}/oauth/revoke`,
-        new URLSearchParams({
-          token: refreshToken,
-          token_type_hint: "refresh_token",
-          client_id: CLIENT_ID,
-        }).toString(),
-        {
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            Authorization: getBasicAuthHeader(CLIENT_ID, CLIENT_SECRET),
-          },
-        },
-      );
-    }
+    // if (refreshToken) {
+    //   await axios.post(
+    //     `${BASE_AUTH_URL}/oauth/revoke`,
+    //     new URLSearchParams({
+    //       token: refreshToken,
+    //       token_type_hint: "refresh_token",
+    //       client_id: CLIENT_ID,
+    //     }).toString(),
+    //     {
+    //       headers: {
+    //         "Content-Type": "application/x-www-form-urlencoded",
+    //         Authorization: getBasicAuthHeader(CLIENT_ID, CLIENT_SECRET),
+    //       },
+    //     },
+    //   );
+    // }
 
     const logoutUrl = new URL(ADFS_URL);
     logoutUrl.searchParams.set("wa", "wsignout1.0");
