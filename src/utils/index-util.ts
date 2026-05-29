@@ -49,6 +49,10 @@ export const isEmptyDate = (value?: string) => {
   return !value || value === "-";
 };
 
+export const isEmptyRefDoc = (value: string) => {
+  return !value || value === "0";
+};
+
 export const unformatDateToOData = (
   formattedDate: string,
   endOfDay = false,

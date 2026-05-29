@@ -5,6 +5,7 @@ import {
   encodedNotes,
   isEmptyAmount,
   isEmptyDate,
+  isEmptyRefDoc,
   parseAmount,
   unformatDate,
   unformatDateToOData,
@@ -41,20 +42,22 @@ export const getTaskDataHandler = async (req: Request, res: Response) => {
     }
 
     if (isFiltering.toLowerCase() === "true") {
-      const { amountFrom, amountTo, dateFrom, dateTo, currency } =
-        req.query as any;
-      const parsedAmountFrom = parseAmount(amountFrom).toString();
-      const parsedDateFrom = unformatDateToOData(dateFrom) as string;
+      const {
+        amountFrom,
+        amountTo,
+        dateFrom,
+        dateTo,
+        currency,
+        referenceDocFrom,
+        referenceDocTo,
+      } = req.query as any;
 
+      console.log(req.query);
+      const parsedAmountFrom = parseAmount(amountFrom).toString();
       const isEmptyAmountTo = isEmptyAmount(amountTo);
       const isEmptyAmountFrom = isEmptyAmount(amountFrom);
-
-      const isEmptyDateFrom = isEmptyDate(dateFrom);
-      const isEmptyDateTo = isEmptyDate(dateTo);
-
       const isFilteringByAmount = !isEmptyAmountTo || !isEmptyAmountFrom;
-      const isFilteringByDate = !isEmptyDateFrom || !isEmptyDateTo;
-
+      // --> Filtering by amount
       if (isFilteringByAmount) {
         params.append("filteringByAmount", "true" as any);
         params.append("amountFrom", parsedAmountFrom);
@@ -65,6 +68,11 @@ export const getTaskDataHandler = async (req: Request, res: Response) => {
         }
       }
 
+      // --> Filtering by Date
+      const parsedDateFrom = unformatDateToOData(dateFrom) as string;
+      const isEmptyDateFrom = isEmptyDate(dateFrom);
+      const isEmptyDateTo = isEmptyDate(dateTo);
+      const isFilteringByDate = !isEmptyDateFrom || !isEmptyDateTo;
       if (isFilteringByDate) {
         params.append("filteringByDate", "true" as any);
         params.append("dateFrom", parsedDateFrom);
@@ -75,12 +83,24 @@ export const getTaskDataHandler = async (req: Request, res: Response) => {
         }
       }
 
+      // --> Filtering By currency
       if (currency !== "*") {
         params.append("currency", currency);
       }
-    }
 
-    console.log(params);
+      // --> Filtering by referenceDoc
+      const isEmptyRefDocFrom = isEmptyRefDoc(referenceDocFrom);
+      const isEmptyRefDocTo = isEmptyRefDoc(referenceDocTo);
+      const isFilteringByRefDoc = !isEmptyRefDocFrom || !isEmptyRefDocTo;
+      if (isFilteringByRefDoc) {
+        params.append("filteringByReferenceDoc", "true");
+        params.append("referenceDocFrom", referenceDocFrom);
+
+        if (!isEmptyRefDocTo) {
+          params.append("referenceDocTo", referenceDocTo);
+        }
+      }
+    }
 
     const path = `/odata/v4/taskprocessing/TaskData?${params}`;
     const response = await api.get(path);
@@ -335,6 +355,12 @@ export const actionHandler = async (req: Request, res: Response) => {
       SAP__Origin: i.SAP__ORIGIN,
     }));
 
+    // buildedPayload.push({
+    //   InstanceID: "000000490299",
+    //   DecisionKey: "0002",
+    //   Comments: "",
+    //   SAP__Origin: "LOCAL_TGW",
+    // });
     const response = await api.post(path, {
       items: buildedPayload,
     });
