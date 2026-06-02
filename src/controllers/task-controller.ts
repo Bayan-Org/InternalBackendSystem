@@ -181,7 +181,7 @@ export const getTaskReferenceHandler = async (req: Request, res: Response) => {
     // --> Searching
     if (isSearching === "true" && search) {
       const listField = [
-        "LineItem",
+        // "LineItem",
         "StorageLocation",
         "StorageLocationDesc",
         "Material",
