@@ -3,6 +3,7 @@ import { createApiInstance } from "../utils/apiFactory-util.js";
 import type { IPayloads } from "../middleware/action-middleware.js";
 import {
   encodedNotes,
+  getAssociationPath,
   isEmptyAmount,
   isEmptyDate,
   isEmptyRefDoc,
@@ -52,7 +53,6 @@ export const getTaskDataHandler = async (req: Request, res: Response) => {
         referenceDocTo,
       } = req.query as any;
 
-      console.log(req.query);
       const parsedAmountFrom = parseAmount(amountFrom).toString();
       const isEmptyAmountTo = isEmptyAmount(amountTo);
       const isEmptyAmountFrom = isEmptyAmount(amountFrom);
@@ -73,6 +73,7 @@ export const getTaskDataHandler = async (req: Request, res: Response) => {
       const isEmptyDateFrom = isEmptyDate(dateFrom);
       const isEmptyDateTo = isEmptyDate(dateTo);
       const isFilteringByDate = !isEmptyDateFrom || !isEmptyDateTo;
+      console.log("isFilteringByDate", isFilteringByDate, parsedDateFrom);
       if (isFilteringByDate) {
         params.append("filteringByDate", "true" as any);
         params.append("dateFrom", parsedDateFrom);
@@ -104,18 +105,28 @@ export const getTaskDataHandler = async (req: Request, res: Response) => {
 
     const path = `/odata/v4/taskprocessing/TaskData?${params}`;
     const response = await api.get(path);
+
+    // --> Get all currency
+    let currencyResp = [] as any;
+    if (page === 1) {
+      const respCurrency = response.data.value[0].currency;
+      const associationPath = getAssociationPath(Service);
+      currencyResp = [
+        ...new Set(
+          respCurrency.map((e: any) => e[associationPath].TotalAmountCurrency),
+        ),
+      ];
+    }
     return res.status(200).json({
       statusCode: 200,
       message: "Success",
       data: {
         value: response.data.value[0].value,
         meta: response.data.value[0].meta,
+        currency: currencyResp,
       },
     });
   } catch (error) {
-    console.log("====================================");
-    console.log(error);
-    console.log("====================================");
     return res.status(400).json({
       statusCode: 400,
       message: "Error get Task",
@@ -165,7 +176,6 @@ export const getTaskReferenceHandler = async (req: Request, res: Response) => {
       100,
     ).toString();
     const skip = ((page - 1) * parseFloat(limit)) as any;
-
     // --> Handle sorting
     const { sortField, sortDirection } = req.query;
     const sortingQuery = `$orderby=${sortField} ${sortDirection}`;

@@ -94,3 +94,12 @@ export const unformatDateToOData = (
 
   return `${yyyy}-${mm}-${dd}`;
 };
+
+export const getAssociationPath = (TaskIndicator: string) => {
+  switch (TaskIndicator) {
+    case "PurchaseRequisition":
+      return "to_PurchaseReqHeader";
+    default:
+      return "to_PurchaseOrdHeader";
+  }
+};
