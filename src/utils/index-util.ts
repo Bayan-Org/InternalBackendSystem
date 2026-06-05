@@ -1,3 +1,5 @@
+import { greetings } from "../constants/greatings.js";
+
 export const generateQuery = (arrayString: string[]) => {
   return arrayString.join(",");
 };
@@ -102,4 +104,15 @@ export const getAssociationPath = (TaskIndicator: string) => {
     default:
       return "to_PurchaseOrdHeader";
   }
+};
+
+/**
+ * function_desc.
+ *
+ * @param param params_desc.
+ * @returns return_desc.
+ */
+export const generateRandomGreatings = () => {
+  const randomIndex = Math.floor(Math.random() * greetings.length);
+  return greetings[randomIndex];
 };

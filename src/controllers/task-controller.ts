@@ -275,9 +275,6 @@ export const getTaskReferenceHandler = async (req: Request, res: Response) => {
     }
     const filterQuery = `$filter=${filterQueryList.join(" and ")}`;
 
-    console.log("====================================");
-    console.log(filterQuery);
-    console.log("====================================");
     // --> Limit
     const limitQuery = `$top=${limit}`;
 
@@ -306,12 +303,21 @@ export const getTaskReferenceHandler = async (req: Request, res: Response) => {
     }
 
     let resp = response.data;
+    console.log({
+      value: [
+        {
+          [service]: [...resp.value],
+        },
+      ],
+    });
+
     return res.status(201).json({
       statusCode: 201,
       message: "Success",
       data: {
         value: [
           {
+            TaskIndicator: TaskIndicator,
             [service]: [...resp.value],
           },
         ],

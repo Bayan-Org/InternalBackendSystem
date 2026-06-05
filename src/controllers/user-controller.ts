@@ -1,6 +1,17 @@
 import axios from "axios";
 import type { Response, Request } from "express";
+import { generateRandomGreatings } from "../utils/index-util.js";
 
+/**
+ * function_desc.
+ *
+ * @param param params_desc.
+ * @returns return_desc.
+ */
+export const initializationHandler = async (req: Request, res: Response) => {
+  // --> Generate random greatings
+  const greatingMessage = generateRandomGreatings();
+};
 export const getMatchingProfile = async (req: Request, res: Response) => {
   const accessToken = req.headers.authorization || process.env.ACCESS_TOKEN;
   const BASE_APP_URL = process.env.BASE_APP_URL;
@@ -46,6 +57,12 @@ export const getProfileHandler = async (req: Request, res: Response) => {
       profile: {
         ...response.data.value[0],
         UserName: response.data.value[0].Bname,
+      },
+      greatings: generateRandomGreatings(),
+      totalData: {
+        totalData: 0,
+        totalPR: 0,
+        totalPO: 0,
       },
     });
   } catch (error) {
