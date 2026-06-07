@@ -1,6 +1,7 @@
 import express from "express";
 import {
   actionHandler,
+  getInitiliazieData,
   getTaskCollectionHandler,
   getTaskDataHandler,
   getTaskReferenceHandler,
@@ -16,6 +17,7 @@ const TaskRouter = express.Router();
 TaskRouter.get("/data", FilterMiddleware, getTaskDataHandler);
 TaskRouter.get("/collection", getTaskCollectionHandler);
 TaskRouter.get("/reference", FilterDetailMiddleware, getTaskReferenceHandler);
+TaskRouter.get("/init", getInitiliazieData);
 
 TaskRouter.post("/approve", [ApprovalMiddleware], actionHandler);
 TaskRouter.post("/reject", [ApprovalMiddleware], actionHandler);

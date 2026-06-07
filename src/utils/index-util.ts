@@ -1,4 +1,6 @@
+import type { AxiosInstance } from "axios";
 import { greetings } from "../constants/greatings.js";
+import { createApiInstance } from "./apiFactory-util.js";
 
 export const generateQuery = (arrayString: string[]) => {
   return arrayString.join(",");
@@ -115,4 +117,22 @@ export const getAssociationPath = (TaskIndicator: string) => {
 export const generateRandomGreatings = () => {
   const randomIndex = Math.floor(Math.random() * greetings.length);
   return greetings[randomIndex];
+};
+
+export const getInitiliazieDataReuse = async (accessToken: string) => {
+  try {
+    const api = createApiInstance(accessToken!);
+    const path = `/odata/v4/taskprocessing/InitializeData`;
+    const response = await api.get(path);
+    const { totalData, totalPR, totalPO } = response.data.value[0];
+    return {
+      totalData: {
+        totalData,
+        totalPO,
+        totalPR,
+      },
+    };
+  } catch (error: any) {
+    throw error.message || "Error initializing your data";
+  }
 };

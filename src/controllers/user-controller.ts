@@ -1,6 +1,9 @@
 import axios from "axios";
 import type { Response, Request } from "express";
-import { generateRandomGreatings } from "../utils/index-util.js";
+import {
+  generateRandomGreatings,
+  getInitiliazieDataReuse,
+} from "../utils/index-util.js";
 
 /**
  * function_desc.
@@ -38,16 +41,22 @@ export const getMatchingProfile = async (req: Request, res: Response) => {
 };
 
 export const getProfileHandler = async (req: Request, res: Response) => {
-  const accessToken = req.headers.authorization || process.env.ACCESS_TOKEN;
+  const accessToken =
+    req.headers.authorization || (process.env.ACCESS_TOKEN as string);
   const BASE_APP_URL = process.env.BASE_APP_URL;
 
   const requestURL = `${BASE_APP_URL}/odata/v4/current-user/ZC_GET_CURRENT_USER`;
   try {
-    const response = await axios.get(requestURL, {
-      headers: {
-        Authorization: `${accessToken}`,
-      },
-    });
+    const [response, totalData] = await Promise.all([
+      axios.get(requestURL, {
+        headers: {
+          Authorization: `${accessToken}`,
+        },
+      }),
+      getInitiliazieDataReuse(accessToken),
+    ]);
+
+    // const response = await
     res.setHeader("Content-Type", "application/json");
 
     console.log(`Profile Handler ${new Date()} ----------- `);
@@ -59,11 +68,7 @@ export const getProfileHandler = async (req: Request, res: Response) => {
         UserName: response.data.value[0].Bname,
       },
       greatings: generateRandomGreatings(),
-      totalData: {
-        totalData: 0,
-        totalPR: 0,
-        totalPO: 0,
-      },
+      ...totalData,
     });
   } catch (error) {
     console.log(`Profile Handler error ----------- `, error);

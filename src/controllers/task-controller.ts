@@ -3,7 +3,9 @@ import { createApiInstance } from "../utils/apiFactory-util.js";
 import type { IPayloads } from "../middleware/action-middleware.js";
 import {
   encodedNotes,
+  generateRandomGreatings,
   getAssociationPath,
+  getInitiliazieDataReuse,
   isEmptyAmount,
   isEmptyDate,
   isEmptyRefDoc,
@@ -13,6 +15,22 @@ import {
 } from "../utils/index-util.js";
 import type { PendingApprovalDetailParams } from "../interface/index.js";
 
+export const getInitiliazieData = async (req: Request, res: Response) => {
+  try {
+    const accessToken = req.headers.authorization as string;
+    const initData = await getInitiliazieDataReuse(accessToken);
+    return res.status(200).json({
+      ...initData,
+      greatings: generateRandomGreatings(),
+    });
+  } catch (error: any) {
+    return res.status(400).json({
+      statusCode: 400,
+      message: error.message || "Error initializing your data",
+      data: error,
+    });
+  }
+};
 export const getTaskDataHandler = async (req: Request, res: Response) => {
   try {
     const { Service, isFiltering, sortField, sortDirection } = req.query as any;
