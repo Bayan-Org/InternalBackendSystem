@@ -10,17 +10,17 @@ dotenv.config();
 const app = express();
 
 app.use(express.json());
-
-// app.use((req, res, next) => {
-//   console.log("Incoming Before Cors:", req.method, req.url, req.baseUrl);
-//   next();
-// });
-
-app.use(cors());
-
-// app.use((req, res, next) => {
-//   next();
-// });
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      const allowed =
+        origin.endsWith(".bayan.com.sg") || origin === "https://bayan.com.sg";
+      callback(null, allowed);
+    },
+  }),
+);
+app.set("trust proxy", true);
 
 app.get("/", (req: Request, res: Response) => {
   res.status(201).json({
