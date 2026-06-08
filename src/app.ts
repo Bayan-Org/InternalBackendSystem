@@ -1,14 +1,13 @@
 import express, { type Request, type Response } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import rateLimit from "express-rate-limit";
 
 import AuthRouter from "./routes/auth-route.js";
 import UserRouter from "./routes/user-route.js";
 import TaskRouter from "./routes/task-route.js";
 
 import { AuthMiddleware } from "./middleware/auth-middleware.js";
-
+import { apiLimiter } from "./middleware/rate-limit-middleware.js";
 dotenv.config();
 
 const app = express();
@@ -17,35 +16,6 @@ const app = express();
  * Behind NGINX Reverse Proxy
  */
 app.set("trust proxy", true);
-
-/**
- * Global API Limiter
- */
-const apiLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 300,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    success: false,
-    message: "Too many requests",
-  },
-});
-
-/**
- * Login Limiter
- */
-export const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5,
-  standardHeaders: true,
-  legacyHeaders: false,
-  skipSuccessfulRequests: true,
-  message: {
-    success: false,
-    message: "Too many login attempts. Please try again later.",
-  },
-});
 
 /**
  * CORS
@@ -73,7 +43,7 @@ app.use(express.json());
 app.get("/", (_req: Request, res: Response) => {
   res.status(200).json({
     success: true,
-    message: "Server running",
+    message: "Healthy Server",
   });
 });
 
