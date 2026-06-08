@@ -6,7 +6,7 @@ import {
   logoutHandler,
   refreshTokenHandler,
 } from "../controllers/auth-controller.js";
-import { loginLimiter } from "../app.js";
+import { loginLimiter } from "../middleware/rate-limit-middleware.js";
 
 const AuthRouter = express.Router();
 
