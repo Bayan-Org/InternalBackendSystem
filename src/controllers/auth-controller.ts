@@ -49,9 +49,22 @@ export const loginHandler = async (req: Request, res: Response) => {
   const CLIENT_ID = process.env.CLIENT_ID;
   const REDIRECT_URI = process.env.REDIRECT_URI;
 
-  const authURLPath = `${BASE_AUTH_URL}/oauth/authorize`;
-  const authURLParams = `response_type=code&client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&code_challenge=${code_challenge}&code_challenge_method=S256&state=xyz123&scope=openid`;
-  const authURL = `${authURLPath}?${authURLParams}`;
+  const loginHint = encodeURIComponent(
+    JSON.stringify({
+      origin: "httpadfs2.bayan.com.sgadfsservicestr",
+    }),
+  );
+
+  const authURL =
+    `${BASE_AUTH_URL}/oauth/authorize` +
+    `?response_type=code` +
+    `&client_id=${CLIENT_ID}` +
+    `&redirect_uri=${REDIRECT_URI}` +
+    `&code_challenge=${code_challenge}` +
+    `&code_challenge_method=S256` +
+    `&state=xyz123` +
+    `&scope=openid` +
+    `&login_hint=${loginHint}`;
 
   try {
     return res.status(200).redirect(authURL);
