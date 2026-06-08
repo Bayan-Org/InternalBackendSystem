@@ -43,7 +43,7 @@ app.use(express.json());
 app.get("/", (_req: Request, res: Response) => {
   res.status(200).json({
     success: true,
-    message: "Healthy Server",
+    message: "Server OK",
   });
 });
 
