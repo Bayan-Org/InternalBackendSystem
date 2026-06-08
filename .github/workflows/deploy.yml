@@ -1,15 +1,17 @@
-name: Test Runner
+name: Deploy Backend
 
 on:
-  workflow_dispatch:
-
+  push:
+    branches:
+      - main
 jobs:
-  test:
+  deploy:
     runs-on: self-hosted
-
     steps:
-      - name: Hello
+      - uses: actions/checkout@v4
+      - name: Deploy
         run: |
-          echo "Runner OK"
-          hostname
-          whoami
+          cd /srv/projects/InternalBackendSystem
+          git pull origin main
+          docker compose up -d --build
+          docker image prune -f
