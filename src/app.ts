@@ -15,7 +15,9 @@ const app = express();
 /**
  * Behind NGINX Reverse Proxy
  */
-app.set("trust proxy", true);
+const NODE_ENV = process.env.NODE_ENV;
+const isProd = NODE_ENV === "production";
+app.set("trust proxy", isProd);
 
 /**
  * CORS

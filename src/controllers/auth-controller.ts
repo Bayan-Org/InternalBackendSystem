@@ -182,7 +182,6 @@ export const exchangeHandler = async (req: Request, res: Response) => {
 export const refreshTokenHandler = async (req: Request, res: Response) => {
   try {
     const refresh_token = req.body?.refresh_token;
-
     if (!refresh_token) {
       return res.status(401).json({
         statusCode: 401,
@@ -209,7 +208,7 @@ export const refreshTokenHandler = async (req: Request, res: Response) => {
         },
       },
     );
-    const accessToken = response.data.access_token;
+    const accessToken = response.data.access_token; // process.env.EXPIRED_ACCESS_TOKEN; //
     const refreshToken = response.data.refresh_token;
     return res.status(201).json({
       statusCode: 201,
@@ -219,14 +218,28 @@ export const refreshTokenHandler = async (req: Request, res: Response) => {
         refreshToken,
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     return res.status(401).json({
       statusCode: 401,
       message: "Unauthorized",
       data: {
-        message: "Session expired. Please login again.",
+        message:
+          error.response.data.error_description ||
+          "Session expired. Please login again.",
         action: "RELOGIN",
       },
     });
   }
+};
+
+/**
+ * function_desc.
+ *
+ * @param param params_desc.
+ * @returns return_desc.
+ */
+export const verifyToken = async (_req: Request, res: Response) => {
+  return res.status(200).json({
+    valid: true,
+  });
 };
