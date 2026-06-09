@@ -208,7 +208,7 @@ export const refreshTokenHandler = async (req: Request, res: Response) => {
         },
       },
     );
-    const accessToken = response.data.access_token; // process.env.EXPIRED_ACCESS_TOKEN; //
+    const accessToken = process.env.EXPIRED_ACCESS_TOKEN; // response.data.access_token
     const refreshToken = response.data.refresh_token;
     return res.status(201).json({
       statusCode: 201,
