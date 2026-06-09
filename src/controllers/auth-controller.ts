@@ -2,6 +2,7 @@ import type { Response, Request } from "express";
 import axios, { type AxiosRequestConfig } from "axios";
 import { code_challenge, code_verifier } from "../configs/init-config.js";
 import { getBasicAuthHeader } from "../utils/key-config.js";
+import { basicApiInstance } from "../utils/basicApi-util.js";
 
 export const logoutHandler = async (req: Request, res: Response) => {
   const BASE_AUTH_URL = process.env.BASE_AUTH_URL as string;
@@ -12,7 +13,7 @@ export const logoutHandler = async (req: Request, res: Response) => {
 
   try {
     // if (refreshToken) {
-    //   await axios.post(
+    //   await basicApiInstance().post(
     //     `${BASE_AUTH_URL}/oauth/revoke`,
     //     new URLSearchParams({
     //       token: refreshToken,
@@ -100,7 +101,7 @@ export const callbackHandler = async (req: Request, res: Response) => {
   };
 
   try {
-    const tokenResponse = await axios.post(
+    const tokenResponse = await basicApiInstance().post(
       tokenURLPath,
       new URLSearchParams(urlSearchParamsConf),
       {
@@ -151,7 +152,7 @@ export const exchangeHandler = async (req: Request, res: Response) => {
   } as any;
 
   try {
-    const tokenResponse = await axios.post(
+    const tokenResponse = await basicApiInstance().post(
       tokenURLPath,
       new URLSearchParams(urlSearchParamsConf),
       {
@@ -199,7 +200,7 @@ export const refreshTokenHandler = async (req: Request, res: Response) => {
       client_secret: process.env.CLIENT_SECRET,
     } as any;
 
-    const response = await axios.post(
+    const response = await basicApiInstance().post(
       url,
       new URLSearchParams(urlSearchParamsConf),
       {

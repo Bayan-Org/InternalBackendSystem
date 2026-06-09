@@ -4,6 +4,7 @@ import {
   generateRandomGreatings,
   getInitiliazieDataReuse,
 } from "../utils/index-util.js";
+import { createApiInstance } from "../utils/apiFactory-util.js";
 
 /**
  * function_desc.
@@ -16,16 +17,13 @@ export const initializationHandler = async (req: Request, res: Response) => {
   const greatingMessage = generateRandomGreatings();
 };
 export const getMatchingProfile = async (req: Request, res: Response) => {
-  const accessToken = req.headers.authorization || process.env.ACCESS_TOKEN;
+  const accessToken =
+    req.headers.authorization || (process.env.ACCESS_TOKEN as string);
   const BASE_APP_URL = process.env.BASE_APP_URL;
 
   const requestURL = `${BASE_APP_URL}/odata/v4/current-user/ZC_GET_CURRENT_USER`;
   try {
-    const response = await axios.get(requestURL, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const response = await createApiInstance(accessToken).get(requestURL);
 
     console.log(`${new Date()} ----------- `, response.data.value[0].UserEmail);
 
