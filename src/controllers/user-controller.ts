@@ -46,7 +46,7 @@ export const getProfileHandler = async (req: Request, res: Response) => {
   const requestURL = `${BASE_APP_URL}/odata/v4/current-user/ZC_GET_CURRENT_USER`;
   try {
     const [response, totalData] = await Promise.all([
-      axios.get(requestURL, {
+      createApiInstance(accessToken).get(requestURL, {
         headers: {
           Authorization: `${accessToken}`,
         },
