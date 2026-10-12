@@ -36,3 +36,22 @@ export type IODataEnpointConf = {
   entity: string;
   params?: IODataQuery;
 };
+
+type ODataMetadataField = {
+  id: string;
+  uri: string;
+  type: string;
+};
+
+export type ODataResultsField = {
+  __metadata: ODataMetadataField;
+};
+
+export type IODataDefaultResp<T extends ODataResultsField = ODataResultsField> =
+  {
+    data: {
+      d: {
+        results: T[];
+      };
+    };
+  };

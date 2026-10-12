@@ -1,7 +1,14 @@
 import type { AxiosInstance } from "axios";
 import { greetings } from "../constants/greatings.js";
 import { createApiInstance } from "./apiFactory-util.js";
-import type { IODataEnpointConf } from "../interface/index.js";
+import type {
+  IODataEnpointConf,
+  ODataResultsField,
+} from "../interface/index.js";
+import type {
+  IODataCurrentUserEntity,
+  IODataCurrentUserResult,
+} from "../interface/odata-response.js";
 
 export const generateQuery = (arrayString: string[]) => {
   return arrayString.join(",");
@@ -156,4 +163,41 @@ export const constructODataEndpoint = ({
   return `/sap/opu/odata/sap/${entity}/${service}${
     queryString ? `?${queryString}` : ""
   }`;
+};
+
+export const removeODataMetadata = <T extends ODataResultsField>(
+  entity: T,
+): Omit<T, "__metadata"> => {
+  const { __metadata, ...result } = entity;
+
+  return result;
+};
+
+export const getCurrentUser = async (
+  accessToken: string,
+): Promise<IODataCurrentUserEntity> => {
+  const path = constructODataEndpoint({
+    entity: "zc_get_current_user_cds",
+    service: "ZC_GET_CURRENT_USER",
+    params: {
+      $format: "json",
+    },
+  });
+
+  const response = (await createApiInstance(accessToken).get("/", {
+    params: {
+      path,
+    },
+  })) as IODataCurrentUserResult;
+
+  const currentUser = response.data.d.results[0];
+
+  if (!currentUser) {
+    throw new Error("Current user not found");
+  }
+
+  const cleanUserData = removeODataMetadata(
+    currentUser,
+  ) as IODataCurrentUserEntity;
+  return cleanUserData;
 };

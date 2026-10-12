@@ -3,9 +3,12 @@ import type { Response, Request } from "express";
 import {
   constructODataEndpoint,
   generateRandomGreatings,
+  getCurrentUser,
   getInitiliazieDataReuse,
+  removeODataMetadata,
 } from "../utils/index-util.js";
 import { createApiInstance } from "../utils/apiFactory-util.js";
+import type { IODataCurrentUserResult } from "../interface/odata-response.js";
 
 /**
  * function_desc.
@@ -19,38 +22,16 @@ export const initializationHandler = async (req: Request, res: Response) => {
 };
 
 export const getMatchingProfile = async (req: Request, res: Response) => {
-  const accessToken =
-    req.headers.authorization || (process.env.ACCESS_TOKEN as string);
-  const BASE_APP_URL = process.env.BASE_APP_URL;
-
-  const requestURL = `${BASE_APP_URL}/odata/v4/current-user/ZC_GET_CURRENT_USER`;
+  const accessToken = req.headers.authorization || process.env.ACCESS_TOKEN;
 
   try {
-    const path = constructODataEndpoint({
-      entity: "zc_get_current_user_cds",
-      service: "ZC_GET_CURRENT_USER",
-      params: {
-        $format: "json",
-      },
-    });
-    // const response = await createApiInstance(accessToken).get("/", {
-    //   params: {
-    //     path,
-    //   },
-    // });
-    const response = await createApiInstance(accessToken).get(
-      `https://sap-proxy.cfapps.ap11.hana.ondemand.com/api/sap/odata?path=/sap/opu/odata/sap/zc_get_current_user_cds/ZC_GET_CURRENT_USER?$format=json`,
-    );
+    const profile = await getCurrentUser(accessToken as string);
 
-    console.log(`${new Date()} ----------- `, response.data.value[0].UserEmail);
-
-    res.setHeader("Content-Type", "application/json");
-    return res.status(200).json(response.data);
+    return res.status(200).json(profile);
   } catch (error) {
-    console.log("====================================");
-    console.log(error);
-    console.log("====================================");
-    return res.json({
+    console.error("Get Matching Profile Error:", error);
+
+    return res.status(500).json({
       statusCode: 500,
       message: "Internal Server Error get profile",
       data: error,
@@ -59,39 +40,31 @@ export const getMatchingProfile = async (req: Request, res: Response) => {
 };
 
 export const getProfileHandler = async (req: Request, res: Response) => {
-  const accessToken =
-    req.headers.authorization || (process.env.ACCESS_TOKEN as string);
-  const BASE_APP_URL = process.env.BASE_APP_URL;
+  const accessToken = req.headers.authorization || process.env.ACCESS_TOKEN;
 
-  const requestURL = `${BASE_APP_URL}/odata/v4/current-user/ZC_GET_CURRENT_USER`;
   try {
-    const [response, totalData] = await Promise.all([
-      createApiInstance(accessToken).get(requestURL, {
-        headers: {
-          Authorization: `${accessToken}`,
-        },
-      }),
-      getInitiliazieDataReuse(accessToken),
+    const [profile, totalData] = await Promise.all([
+      getCurrentUser(accessToken as string),
+      getInitiliazieDataReuse(accessToken as string),
     ]);
 
-    // const response = await
-    res.setHeader("Content-Type", "application/json");
+    console.log(`Profile Handler ${new Date()} -----------`);
 
-    console.log(`Profile Handler ${new Date()} ----------- `);
     return res.status(200).json({
       message: "Success",
       statusCode: 200,
       profile: {
-        ...response.data.value[0],
-        UserName: response.data.value[0].Bname,
+        ...profile,
+        UserName: profile.Bname,
       },
       greatings: generateRandomGreatings(),
       ...totalData,
     });
   } catch (error) {
-    console.log(`Profile Handler error ----------- `, error);
-    return res.status(401).json({
-      statusCode: 401,
+    console.error("Profile Handler Error:", error);
+
+    return res.status(500).json({
+      statusCode: 500,
       message: "Internal Server Error get profile",
       data: error,
     });
