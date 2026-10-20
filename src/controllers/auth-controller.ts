@@ -49,7 +49,6 @@ export const loginHandler = async (req: Request, res: Response) => {
   const BASE_AUTH_URL = process.env.BASE_AUTH_URL;
   const CLIENT_ID = process.env.CLIENT_ID;
   const REDIRECT_URI = process.env.REDIRECT_URI;
-
   const loginHint = encodeURIComponent(
     JSON.stringify({
       origin: "httpadfs2.bayan.com.sgadfsservicestr",
@@ -172,6 +171,9 @@ export const exchangeHandler = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
+    console.log("====================================");
+    console.log(error);
+    console.log("====================================");
     res.status(401).json({
       message:
         "Failed to exchange your credentials, please contact your administrator",

@@ -8,6 +8,7 @@ import TaskRouter from "./routes/task-route.js";
 
 import { AuthMiddleware } from "./middleware/auth-middleware.js";
 import { apiLimiter } from "./middleware/rate-limit-middleware.js";
+import { LoggingMiddleware } from "./middleware/logging-middleware.js";
 dotenv.config();
 
 const app = express();
@@ -43,9 +44,10 @@ app.use(express.json());
  * Health Check
  */
 app.get("/", (_req: Request, res: Response) => {
+  console.log("Hello");
   res.status(200).json({
     success: true,
-    message: "Serverrr OK!",
+    message: "Server OK!",
   });
 });
 
@@ -59,6 +61,7 @@ app.use("/task", apiLimiter);
 /**
  * Routes
  */
+app.use("/", LoggingMiddleware);
 app.use("/auth", AuthRouter);
 app.use("/user", AuthMiddleware, UserRouter);
 app.use("/task", AuthMiddleware, TaskRouter);
