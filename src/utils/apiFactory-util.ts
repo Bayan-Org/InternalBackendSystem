@@ -7,7 +7,7 @@ export const createApiInstance = (token: string) => {
   const instance = axios.create({
     baseURL: process.env.BASE_APP_URL as string,
     timeout: 60000,
-    httpsAgent: proxyAgent,
+    httpsAgent: process.env.NODE_ENV === "development" ? undefined : proxyAgent,
   });
 
   instance.interceptors.request.use((config) => {

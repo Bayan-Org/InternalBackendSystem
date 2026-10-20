@@ -9,11 +9,15 @@ import {
   isEmptyAmount,
   isEmptyDate,
   isEmptyRefDoc,
+  mappingApproverData,
   parseAmount,
   unformatDate,
   unformatDateToOData,
 } from "../utils/index-util.js";
-import type { PendingApprovalDetailParams } from "../interface/index.js";
+import type {
+  ITaskReferencePath,
+  PendingApprovalDetailParams,
+} from "../interface/index.js";
 
 export const getInitiliazieData = async (req: Request, res: Response) => {
   try {
@@ -135,16 +139,21 @@ export const getTaskDataHandler = async (req: Request, res: Response) => {
         ),
       ];
     }
+    const resp = response.data.value[0].value as ITaskReferencePath;
+    const value = mappingApproverData(resp);
     return res.status(200).json({
       statusCode: 200,
       message: "Success",
       data: {
-        value: response.data.value[0].value,
+        value,
         meta: response.data.value[0].meta,
         currency: currencyResp,
       },
     });
   } catch (error) {
+    console.log("====================================");
+    console.log(error);
+    console.log("====================================");
     return res.status(400).json({
       statusCode: 400,
       message: "Error get Task",

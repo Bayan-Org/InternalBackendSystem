@@ -1,6 +1,14 @@
 import type { AxiosInstance } from "axios";
 import { greetings } from "../constants/greatings.js";
 import { createApiInstance } from "./apiFactory-util.js";
+import type {
+  IApprovedData,
+  IApproverData,
+  IPurchaseReqHeader,
+  IPurchaseReqHeaderResponse,
+  ITaskReferencePath,
+  ITaskReferenceResponsePath,
+} from "../interface/index.js";
 
 export const generateQuery = (arrayString: string[]) => {
   return arrayString.join(",");
@@ -135,4 +143,86 @@ export const getInitiliazieDataReuse = async (accessToken: string) => {
   } catch (error: any) {
     throw error.message || "Error initializing your data";
   }
+};
+
+export const mappingApproverData = (
+  value: ITaskReferencePath,
+): ITaskReferenceResponsePath => {
+  const mapApprover = (
+    header: IPurchaseReqHeader,
+  ): IPurchaseReqHeaderResponse => {
+    const { to_ApprovalStrategy, to_ApprovedHistory, ...headerData } = header;
+
+    const strategy = to_ApprovalStrategy?.[0];
+    const approvedHistory = to_ApprovedHistory ?? [];
+
+    if (!strategy) {
+      return {
+        ...headerData,
+        ApproverData: [],
+      };
+    }
+
+    const levels = [
+      { lvl: 1, code: strategy.Lvl1, data: strategy.to_ApprvrLvl1 },
+      { lvl: 2, code: strategy.Lvl2, data: strategy.to_ApprvrLvl2 },
+      { lvl: 3, code: strategy.Lvl3, data: strategy.to_ApprvrLvl3 },
+      { lvl: 4, code: strategy.Lvl4, data: strategy.to_ApprvrLvl4 },
+      { lvl: 5, code: strategy.Lvl5, data: strategy.to_ApprvrLvl5 },
+    ];
+
+    const ApproverData: IApproverData[] = levels
+      .filter(({ code, data }) => Boolean(code && data?.length))
+      .map(({ lvl, code, data }) => {
+        const approved = approvedHistory.find(
+          (history) => Number(history.ApprovedLevel) === lvl,
+        );
+
+        return {
+          Lvl: lvl,
+          ApprvrCode: code,
+          ApprvDsc: data[0]?.ApprvrCodeDsc ?? "",
+          IsApproved: Boolean(approved),
+          ApprovedData: approved
+            ? {
+                ApprovedLevel: Number(approved.ApprovedLevel),
+                ApprovedName: approved.ApprovedName,
+                ApprovedTime: convertSapTimestampToDate(approved.ApprovedTime),
+              }
+            : null,
+          Names: data.map((approver) => ({
+            Name: approver.Fullname,
+          })),
+          IsCurrentApprover: lvl === header.ApproverLevel,
+        };
+      });
+
+    return {
+      ...headerData,
+      ApproverData,
+    };
+  };
+
+  return value.map((item) => ({
+    ...item,
+    PurchaseOrdHeader: mapApprover(item.PurchaseOrdHeader),
+    PurchaseReqHeader: mapApprover(item.PurchaseReqHeader),
+  }));
+};
+
+const convertSapTimestampToDate = (value?: string | null): string => {
+  if (!value) return "";
+
+  const match = value.match(/\/Date\((-?\d+)(?:[+-]\d{4})?\)\//);
+  if (!match) return "";
+
+  const date = new Date(Number(match[1]));
+  if (Number.isNaN(date.getTime())) return "";
+
+  return date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
 };
